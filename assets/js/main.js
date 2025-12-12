@@ -7,7 +7,7 @@ if (myCarouselElement) {
   });
 }
 
-fetch('assets/src/items.csv')
+fetch('assets/src/Items.csv')
   .then(response => {
     if (!response.ok) throw new Error('Error al cargar CSV');
     return response.text();
@@ -25,7 +25,7 @@ fetch('assets/src/items.csv')
       const [titulo, descripcion, precio, fotourl] = linea.split(';');
 
       if (!titulo || !descripcion || !precio || !fotourl) {
-        console.warn(`Línea ${index + 1} incompleta, saltando...`);
+        console.warn(`Lï¿½nea ${index + 1} incompleta, saltando...`);
         return;
       }
 
