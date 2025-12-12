@@ -29,6 +29,11 @@ body {
   transition: transform 0.6s ease-in-out !important;
 }
 
+.carousel-caption {
+  color: black;
+  text-shadow: 0px 0px 10px white;
+}
+
 .items-container {
   padding: 40px 5%;
   background: #f8f9fa;
