@@ -160,7 +160,7 @@
 }
 .contact-buttons .buttons { display: flex; gap: .5rem; flex-wrap: wrap; }
 .contact-buttons .btn {
-  background: #fff !important;
+  background: transparent !important;
   color: #000 !important;
   border: 2px solid #000 !important;
   display: inline-flex;
@@ -173,7 +173,7 @@
   font-size: 1.05rem;
 }
 .contact-buttons .btn:hover {
-  background: #f2f2f2 !important;
+  background: transparent !important;
   transform: translateY(-2px);
   box-shadow: 0 6px 18px rgba(0,0,0,0.08);
 }
