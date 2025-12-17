@@ -46,8 +46,8 @@
 
 .items-container {
   padding: 0px 5%;
-  background: white;
-  background-image: url(assets/img/wallpaper.jpg);
+  background-color: transparent;
+  background-image: url('../img/wallpaper.jpg');
 }
 
 .items-cards {
