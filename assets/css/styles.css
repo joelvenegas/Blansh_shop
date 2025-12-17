@@ -1,4 +1,4 @@
-body {
+.body-main {
   padding-top: 60px;
 }
 
@@ -35,8 +35,9 @@ body {
 }
 
 .items-container {
-  padding: 40px 5%;
-  background: #f8f9fa;
+  padding: 0px 5%;
+  background: white;
+  background-image: url(/assets/img/wallpaper.jpg);
 }
 
 .items-cards {
@@ -44,7 +45,9 @@ body {
   flex-wrap: wrap;
   justify-content: space-around;
   gap: 20px;
-  padding: 20px;
+  padding: 20px 20px 20px 20px;
+  background: white;
+  border: 10px transparent rgba(226, 226, 226, 0.4);
 }
 
 .items-cards .card {
@@ -99,4 +102,99 @@ body {
 .footer-dark p.small {
   margin: 0;
   opacity: 0.9;
+}
+
+/* Contact style */
+.header-nav-contact {
+  padding-top: 10px;
+  padding-bottom: 10px;
+  padding-left: 10px;
+  padding-right: 10px;
+}
+.underlined {
+  text-decoration: underline !important;
+  text-underline-offset: 2px;
+  color: black;
+  font-size: large;
+}
+
+/* Contact page */
+.contact-row {
+  gap: 1rem;
+}
+.contact-logo {
+  width: 160px;
+  height: 160px;
+  max-width: 180px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 4px solid rgba(255,255,255,0.12);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+  display: block;
+  margin: 0 auto;
+}
+@media (max-width: 767px) {
+  .contact-logo {
+    width: 120px;
+    height: 120px;
+  }
+}
+.contact-text {
+  padding-top: 0.5rem;
+}
+
+/* Contact buttons styling */
+.contact-buttons h2 {
+  margin-bottom: 0.5rem;
+  font-size: 1.25rem;
+}
+.contact-buttons .buttons { display: flex; gap: .5rem; flex-wrap: wrap; }
+.contact-buttons .btn {
+  background: #fff !important;
+  color: #000 !important;
+  border: 2px solid #000 !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: 50%;
+  font-size: 1.05rem;
+}
+.contact-buttons .btn:hover {
+  background: #f2f2f2 !important;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+}
+
+.navbar-brand img {
+  border-radius: 50%;
+  object-fit: cover;
+}
+@media (min-width: 768px) {
+  .contact-logo { margin: 0; }
+  .contact-text { padding-left: 1.5rem; }
+}
+
+/* Contact page background */
+.contact-page {
+  background-image: url('../img/wallpaper.jpg');
+  min-height: 100vh;
+  background-attachment: fixed;
+  position: relative;
+  color: black;
+}
+
+.contact-page::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-color: rgba(255, 255, 255, 0.7);
+  pointer-events: none;
+}
+
+.contact-page .container {
+  position: relative;
+  z-index: 1;
 }
