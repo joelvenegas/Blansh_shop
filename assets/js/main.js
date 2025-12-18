@@ -28,7 +28,7 @@ if (itemsContainer) {
     }
 
     const cartEntry = addToCart(id);
-    console.log('Carrito actualizado:', getCart());
+    //console.log('Carrito actualizado:', getCart());
   });
 } else {
   console.warn('No se encontró el contenedor .items-cards; el listener de click no fue registrado');
