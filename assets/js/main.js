@@ -156,8 +156,25 @@ function renderCart() {
   totalDiv.innerHTML = `<div>Total</div><div>$${total.toFixed(2)}</div>`;
 
   offbody.appendChild(list);
-  offbody.appendChild(totalDiv);
-}
+
+  // Footer fijo: total + botón
+  const footer = document.createElement('div');
+  footer.className = 'cart-footer';
+  footer.appendChild(totalDiv);
+
+  // Botón para finalizar compra
+  const checkoutWrap = document.createElement('div');
+  checkoutWrap.className = 'pt-3';
+  const checkoutBtn = document.createElement('button');
+  checkoutBtn.className = 'btn btn-success w-100 cart-checkout-btn';
+  checkoutBtn.type = 'button';
+  checkoutBtn.id = 'cart-checkout-btn';
+  checkoutBtn.textContent = 'Finalizar compra';
+  checkoutWrap.appendChild(checkoutBtn);
+
+  footer.appendChild(checkoutWrap);
+  offbody.appendChild(footer);
+} 
 
 // Delegación de eventos para botones de eliminar dentro del offcanvas
 document.addEventListener('click', (e) => {
@@ -185,6 +202,13 @@ document.addEventListener('change', (e) => {
   if (!entry) return;
   entry.qty = qty;
   renderCart();
+});
+
+// Click handler para el botón de finalizar compra
+document.addEventListener('click', (e) => {
+  const checkoutBtn = e.target.closest('#cart-checkout-btn, .cart-checkout-btn');
+  if (!checkoutBtn) return;
+  console.log('Finalizar compra:', getCart());
 });
 
 /** Exponer API del carrito */

@@ -213,8 +213,28 @@
   --bs-offcanvas-width: 450px;
 }
 
-.offcanvas-body {
+.offcanvas-cart .offcanvas-body {
   display: flex;
   flex-direction: column;
   gap: 15px;
+  min-height: 0; /* permitir que flex-items se encojan correctamente */
+}
+
+/* El listado interior debe ser el elemento scrolleable */
+.offcanvas-cart .cart-list {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  min-height: 0; /* importante para que overflow funcione dentro de flex container */
+  padding-right: 8px;
+}
+
+/* Footer fijo dentro del offcanvas (total + botón) */
+.offcanvas-cart .cart-footer {
+  flex: 0 0 auto;
+  position: sticky;
+  bottom: 0;
+  background: #fff;
+  padding: .75rem;
+  box-shadow: 0 -6px 12px rgba(0,0,0,0.08);
+  z-index: 10;
 }
