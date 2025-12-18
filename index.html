@@ -38,6 +38,9 @@
             <a class="nav-item nav-link active" href="#home">Inicio</a>
             <a class="nav-item nav-link" href="#items">Productos</a>
             <a class="nav-item nav-link" href="pages/contact.html">Contacto</a>
+            <a class="nav-item nav-link" data-bs-toggle="offcanvas" href="#cartList">
+              <i class="bi bi-cart3"></i> Carrito
+            </a>
           </div>
         </div>
       </div>
@@ -133,6 +136,16 @@
       </div>
     </div>
   </footer>
+
+  <div class="offcanvas offcanvas-end offcanvas-cart" tabindex="-1" id="cartList">
+    <div class="offcanvas-header">
+      <h5 class="offcanvas-title" id="miOffcanvasLabel">Tus compras</h5>
+      <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+    </div>
+    <div class="offcanvas-body">
+      <!-- contenido -->
+    </div>
+  </div>
 
   <!-- Optional JavaScript -->
   <!-- Bootstrap 5 bundle (incluye Popper) -->

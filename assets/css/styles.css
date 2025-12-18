@@ -208,3 +208,7 @@
   position: relative;
   z-index: 1;
 }
+
+.offcanvas-cart{
+  --bs-offcanvas-width: 450px;
+}
