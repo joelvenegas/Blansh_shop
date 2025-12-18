@@ -212,3 +212,9 @@
 .offcanvas-cart{
   --bs-offcanvas-width: 450px;
 }
+
+.offcanvas-body {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
