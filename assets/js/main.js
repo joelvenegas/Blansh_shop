@@ -7,29 +7,205 @@ document.addEventListener('DOMContentLoaded', () => {
   loadAndRenderItems();
 });
 
-document.querySelector('.items-cards').addEventListener('click', (e) => {
-  if (e.target.matches('.card-btn')) {
-    const card = e.target.closest('.card');
-    const id = card?.dataset.id;
-    console.log('Comprar', id);
+// Delegación de evento para botones de compra
+const itemsContainer = document.querySelector('.items-cards');
+if (itemsContainer) {
+  itemsContainer.addEventListener('click', (e) => {
+    const btn = e.target.closest('.card-btn');
+    if (!btn) return;
+
+    const card = btn.closest('.card');
+    if (!card) return;
+
+    const idStr = card.dataset.id;
+    const idNum = Number(idStr);
+    const id = Number.isFinite(idNum) ? idNum : idStr;
+
+    const product = findProductById(id);
+    if (!product) {
+      console.warn('Producto no encontrado para id:', id);
+      return;
+    }
+
+    const cartEntry = addToCart(id);
+    console.log('Carrito actualizado:', getCart());
+  });
+} else {
+  console.warn('No se encontró el contenedor .items-cards; el listener de click no fue registrado');
+}
+
+// Configuración / constantes
+const CSV_PATH = 'assets/src/Items.csv';
+const ITEMS_CONTAINER_SELECTOR = '.items-cards';
+
+let products = [];
+let cartItems = [];
+
+/** Añade producto al carrito (id: number|string). Si existe incrementa qty, si no lo añade con qty=1 */
+function addToCart(id) {
+  const idNum = Number(id);
+  const normalizedId = Number.isFinite(idNum) ? idNum : id;
+  const existing = cartItems.find(ci => ci.id === normalizedId);
+  if (existing) {
+    existing.qty += 1;
+    renderCart();
+    return existing;
+  }
+  const item = { id: normalizedId, qty: 1 };
+  cartItems.push(item);
+  renderCart();
+  return item;
+}
+
+/** Devuelve copia del carrito */
+function getCart() {
+  return cartItems.map(ci => ({ ...ci }));
+}
+
+/** Elimina un producto del carrito por id (elimina la entrada por completo) */
+function removeFromCart(id) {
+  const idNum = Number(id);
+  const normalizedId = Number.isFinite(idNum) ? idNum : id;
+  const idx = cartItems.findIndex(ci => ci.id === normalizedId);
+  if (idx === -1) return false;
+  cartItems.splice(idx, 1);
+  renderCart();
+  return true;
+}
+
+/** Renderiza el contenido del carrito dentro del offcanvas */
+function renderCart() {
+  const offbody = document.querySelector('#cartList .offcanvas-body');
+  if (!offbody) return;
+  offbody.innerHTML = '';
+
+  if (cartItems.length === 0) {
+    offbody.innerHTML = `<p class="text-center">Tu carrito está vacío.</p>`;
+    return;
+  }
+
+  const list = document.createElement('div');
+  list.className = 'cart-list';
+  let total = 0;
+
+  cartItems.forEach(ci => {
+    const product = findProductById(ci.id);
+    const title = product ? product.titulo : 'Producto desconocido';
+    const price = product && typeof product.precio === 'number' ? product.precio : 0;
+    const subtotal = price * ci.qty;
+    total += subtotal;
+
+    const itemDiv = document.createElement('div');
+    itemDiv.className = 'd-flex align-items-center justify-content-between py-2 border-bottom gap-2';
+
+    // Left: thumbnail + text (title + precio debajo)
+    const leftWrap = document.createElement('div');
+    leftWrap.className = 'd-flex align-items-center gap-2';
+
+    const thumb = document.createElement('img');
+    thumb.className = 'rounded';
+    thumb.src = product && product.fotourl ? product.fotourl : '';
+    thumb.alt = title;
+    thumb.width = 48;
+    thumb.height = 48;
+    thumb.style.objectFit = 'cover';
+
+    const textWrap = document.createElement('div');
+    const strong = document.createElement('strong');
+    strong.textContent = title;
+    const small = document.createElement('div');
+    small.className = 'small text-muted';
+    // Mostrar solo el precio debajo del nombre
+    small.textContent = `$${price ? price.toFixed(2) : '—'}`;
+    textWrap.appendChild(strong);
+    textWrap.appendChild(small);
+
+    leftWrap.append(thumb, textWrap);
+
+    // Right: cantidad (input), subtotal y remove button
+    const rightWrap = document.createElement('div');
+    rightWrap.className = 'd-flex align-items-center gap-2';
+
+    const qtyInput = document.createElement('input');
+    qtyInput.className = 'form-control form-control-sm cart-qty-input';
+    qtyInput.type = 'number';
+    qtyInput.min = '1';
+    qtyInput.value = String(ci.qty);
+    qtyInput.style.width = '72px';
+    qtyInput.dataset.id = ci.id;
+
+    const subtotalDiv = document.createElement('div');
+    subtotalDiv.className = 'fw-bold';
+    subtotalDiv.textContent = `$${subtotal.toFixed(2)}`;
+
+    const removeBtn = document.createElement('button');
+    removeBtn.className = 'btn btn-sm btn-outline-danger cart-remove-btn';
+    removeBtn.type = 'button';
+    removeBtn.dataset.id = ci.id;
+    removeBtn.title = 'Eliminar';
+    removeBtn.innerHTML = '<i class="bi bi-trash"></i>';
+
+    rightWrap.append(qtyInput, subtotalDiv, removeBtn);
+
+    itemDiv.append(leftWrap, rightWrap);
+    list.appendChild(itemDiv);
+  });
+
+  const totalDiv = document.createElement('div');
+  totalDiv.className = 'pt-2 d-flex justify-content-between fw-bold';
+  totalDiv.innerHTML = `<div>Total</div><div>$${total.toFixed(2)}</div>`;
+
+  offbody.appendChild(list);
+  offbody.appendChild(totalDiv);
+}
+
+// Delegación de eventos para botones de eliminar dentro del offcanvas
+document.addEventListener('click', (e) => {
+  const btn = e.target.closest('.cart-remove-btn');
+  if (!btn) return;
+  const idStr = btn.dataset.id;
+  const idNum = Number(idStr);
+  const id = Number.isFinite(idNum) ? idNum : idStr;
+  const removed = removeFromCart(id);
+  if (removed) {
+    console.log('Producto eliminado del carrito:', id);
   }
 });
 
-// Configuración / constantes
-const CSV_PATH = 'assets/src/Items.csv'; // Atención al case
-const ITEMS_CONTAINER_SELECTOR = '.items-cards';
+// Delegación para cambios en campo de cantidad (input)
+document.addEventListener('change', (e) => {
+  const input = e.target.closest('.cart-qty-input');
+  if (!input) return;
+  const idStr = input.dataset.id;
+  const idNum = Number(idStr);
+  const id = Number.isFinite(idNum) ? idNum : idStr;
+  let qty = parseInt(input.value, 10);
+  if (!Number.isFinite(qty) || qty < 1) qty = 1;
+  const entry = cartItems.find(ci => ci.id === id);
+  if (!entry) return;
+  entry.qty = qty;
+  renderCart();
+});
 
-// Almacenamiento en memoria de los productos para uso posterior
-let products = [];
+/** Exponer API del carrito */
+window.CartStore = {
+  add: addToCart,
+  get: getCart,
+  remove: removeFromCart,
+  _internal: () => cartItems,
+  render: renderCart
+};
 
 /** Devuelve una copia de la lista de productos cargados */
 function getProducts() {
   return products.slice();
 }
 
-/** Busca un producto por ID */
+/** Busca un producto por ID (normaliza id a número si aplica) */
 function findProductById(id) {
-  return products.find(p => p.id === id) || null;
+  const idNum = Number(id);
+  const normalized = Number.isFinite(idNum) ? idNum : id;
+  return products.find(p => p.id === normalized) || null;
 }
 
 /** Exponer API pública para uso desde otras partes de la app */
@@ -69,8 +245,8 @@ async function loadAndRenderItems() {
       return;
     }
 
-    renderItems(container, items);
-  } catch (err) {
+    renderItems(container, items);    // Actualizar UI del carrito (por si ya tiene elementos o para mostrar vacío)
+    renderCart();  } catch (err) {
     console.error('Error cargando o renderizando items:', err);
     showError(container, 'Error al cargar los productos.');
   }
