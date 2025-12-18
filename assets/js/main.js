@@ -49,11 +49,13 @@ function addToCart(id) {
   if (existing) {
     existing.qty += 1;
     renderCart();
+    refreshAllCardCounts();
     return existing;
   }
   const item = { id: normalizedId, qty: 1 };
   cartItems.push(item);
   renderCart();
+  refreshAllCardCounts();
   return item;
 }
 
@@ -70,6 +72,7 @@ function removeFromCart(id) {
   if (idx === -1) return false;
   cartItems.splice(idx, 1);
   renderCart();
+  refreshAllCardCounts();
   return true;
 }
 
@@ -202,6 +205,7 @@ document.addEventListener('change', (e) => {
   if (!entry) return;
   entry.qty = qty;
   renderCart();
+  refreshAllCardCounts();
 });
 
 // Click handler para el botón de finalizar compra
@@ -311,12 +315,33 @@ function renderItems(container, items) {
   container.innerHTML = '';
   const frag = document.createDocumentFragment();
 
+
   items.forEach(item => {
     const card = createCardElement(item);
     frag.appendChild(card);
   });
 
   container.appendChild(frag);
+
+  // Actualizar badges de cantidad en las cards según el estado del carrito
+  refreshAllCardCounts();
+}
+
+/** Actualiza los badges 'x en carrito' de todas las cards */
+function refreshAllCardCounts() {
+  document.querySelectorAll('.card-cart-count').forEach(span => {
+    const idStr = span.dataset.id;
+    const idNum = Number(idStr);
+    const id = Number.isFinite(idNum) ? idNum : idStr;
+    const entry = cartItems.find(ci => ci.id === id);
+    if (entry && entry.qty > 0) {
+      span.textContent = `${entry.qty} en carrito`;
+      span.style.display = '';
+    } else {
+      span.textContent = '';
+      span.style.display = 'none';
+    }
+  });
 }
 
 /** Crea el elemento de la tarjeta */
@@ -351,7 +376,24 @@ function createCardElement({ id, titulo, descripcion, precio, fotourl }) {
   a.className = 'card-btn btn btn-primary';
   a.textContent = 'Comprar';
 
-  body.append(h5, p, price, a);
+  // contador en carrito (a la derecha del botón)
+  const countSpan = document.createElement('span');
+  countSpan.className = 'text-muted small card-cart-count';
+  countSpan.dataset.id = id;
+
+  // mostrar conteo actual si existe en carrito
+  const existing = cartItems.find(ci => ci.id === id);
+  if (existing && existing.qty > 0) {
+    countSpan.textContent = `${existing.qty} en carrito`;
+  } else {
+    countSpan.style.display = 'none';
+  }
+
+  const controls = document.createElement('div');
+  controls.className = 'd-flex align-items-center gap-2';
+  controls.append(a, countSpan);
+
+  body.append(h5, p, price, controls);
   div.append(img, body);
   return div;
 }
