@@ -96,6 +96,12 @@
     </div>
     <!-- Sección de productos: cargada dinámicamente desde Items.csv -->
     <div id="items" class="items-container">
+      <div class="item-search">
+        <div class="item-search-form d-flex align-items-center gap-2">
+          <input type="search" class="form-control item-search-input" placeholder="Buscar..." aria-label="Buscar productos">
+          <button type="button" class="btn btn-outline-secondary btn-sm item-search-clear"><i class="bi bi-x"></i></button>
+        </div>
+      </div>
       <div class="items-cards"></div>
     </div>
   </main>

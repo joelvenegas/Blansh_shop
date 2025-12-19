@@ -4,6 +4,7 @@
 
 document.addEventListener('DOMContentLoaded', () => {
   initCarousel();
+  initSearch();
   loadAndRenderItems();
 });
 
@@ -411,4 +412,62 @@ function showEmpty(container) {
 /** Muestra mensaje de error */
 function showError(container, message) {
   container.innerHTML = `<p class="text-center text-danger">${message}</p>`;
+}
+
+/** Debounce utility */
+function debounce(fn, wait = 200) {
+  let t;
+  return function (...args) {
+    clearTimeout(t);
+    t = setTimeout(() => fn.apply(this, args), wait);
+  };
+}
+
+/** Ejecuta búsqueda y renderiza resultados */
+function performSearch(query) {
+  const q = String(query || '').trim().toLowerCase();
+  const container = document.querySelector(ITEMS_CONTAINER_SELECTOR);
+  if (!container) return;
+
+  if (!q) {
+    renderItems(container, products);
+    return;
+  }
+
+  const filtered = products.filter(p => {
+    return (
+      String(p.titulo).toLowerCase().includes(q) ||
+      String(p.descripcion).toLowerCase().includes(q)
+    );
+  });
+
+
+
+  if (filtered.length === 0) {
+    container.innerHTML = `<p class="text-center">No se encontraron productos para "${escapeHtml(q)}".</p>`;
+    refreshAllCardCounts();
+    return;
+  }
+
+  renderItems(container, filtered);
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+/** Inicializa la búsqueda */
+function initSearch() {
+  const container = document.querySelector('.item-search');
+  if (!container) return;
+
+  const input = container.querySelector('.item-search-input');
+  const clearBtn = container.querySelector('.item-search-clear');
+
+  const doSearch = debounce(() => performSearch(input.value.trim()), 200);
+  input.addEventListener('input', doSearch);
+  clearBtn.addEventListener('click', () => { input.value = ''; performSearch(''); input.focus(); });
+
+  // Mostrar todo por defecto
+  performSearch('');
 }

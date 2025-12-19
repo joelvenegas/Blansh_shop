@@ -238,3 +238,14 @@
   box-shadow: 0 -6px 12px rgba(0,0,0,0.08);
   z-index: 10;
 }
+
+/* Búsqueda de productos */
+.item-search {
+  padding: 30px 20px 20px 30px;
+  background: white;
+  
+}
+
+.item-search-form {
+  max-width: 40%;
+}
