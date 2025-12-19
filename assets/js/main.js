@@ -241,7 +241,7 @@ function findProductById(id) {
 window.ProductStore = {
   get: getProducts,
   findById: findProductById,
-  _internal: () => products // solo para depuración si se necesita
+  _internal: () => products
 };
 
 /** Inicializa el carousel si existe */
@@ -274,7 +274,7 @@ async function loadAndRenderItems() {
       return;
     }
 
-    renderItems(container, items);    // Actualizar UI del carrito (por si ya tiene elementos o para mostrar vacío)
+    renderItems(container, items);
     renderCart();  } catch (err) {
     console.error('Error cargando o renderizando items:', err);
     showError(container, 'Error al cargar los productos.');
@@ -468,6 +468,5 @@ function initSearch() {
   input.addEventListener('input', doSearch);
   clearBtn.addEventListener('click', () => { input.value = ''; performSearch(''); input.focus(); });
 
-  // Mostrar todo por defecto
   performSearch('');
 }

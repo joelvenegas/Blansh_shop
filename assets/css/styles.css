@@ -5,7 +5,7 @@
 :root {
   --bg-dark: #0b1220;
   --text-light: #e9ecef;
-  --accent: #0d6efd; /* color primario */
+  --accent: #0d6efd;
 }
 
 .body-main {
@@ -217,14 +217,14 @@
   display: flex;
   flex-direction: column;
   gap: 15px;
-  min-height: 0; /* permitir que flex-items se encojan correctamente */
+  min-height: 0;
 }
 
 /* El listado interior debe ser el elemento scrolleable */
 .offcanvas-cart .cart-list {
   flex: 1 1 auto;
   overflow-y: auto;
-  min-height: 0; /* importante para que overflow funcione dentro de flex container */
+  min-height: 0;
   padding-right: 8px;
 }
 
