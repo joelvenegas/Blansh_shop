@@ -122,7 +122,7 @@ function renderCart() {
     const small = document.createElement('div');
     small.className = 'small text-muted';
     // Mostrar solo el precio debajo del nombre
-    small.textContent = `$${price ? price.toFixed(2) : '—'}`;
+    small.textContent = `MX$${price ? price.toFixed(2) : '—'}`;
     textWrap.appendChild(strong);
     textWrap.appendChild(small);
 
@@ -142,7 +142,7 @@ function renderCart() {
 
     const subtotalDiv = document.createElement('div');
     subtotalDiv.className = 'fw-bold';
-    subtotalDiv.textContent = `$${subtotal.toFixed(2)}`;
+    subtotalDiv.textContent = `MX$${subtotal.toFixed(2)}`;
 
     const removeBtn = document.createElement('button');
     removeBtn.className = 'btn btn-sm btn-outline-danger cart-remove-btn';
@@ -159,7 +159,7 @@ function renderCart() {
 
   const totalDiv = document.createElement('div');
   totalDiv.className = 'pt-2 d-flex justify-content-between fw-bold';
-  totalDiv.innerHTML = `<div>Total</div><div>$${total.toFixed(2)}</div>`;
+  totalDiv.innerHTML = `<div>Total</div><div>MX$${total.toFixed(2)}</div>`;
 
   offbody.appendChild(list);
 
@@ -231,9 +231,9 @@ document.addEventListener('click', (e) => {
     const price = product && typeof product.precio === 'number' ? product.precio : 0;
     const subtotal = price * ci.qty;
     total += subtotal;
-    lines.push(`${idx + 1}. ${title} - $${price.toFixed(2)} x${ci.qty} = $${subtotal.toFixed(2)}`);
+    lines.push(`${idx + 1}. ${title} - MX$${price.toFixed(2)} x${ci.qty} = MX$${subtotal.toFixed(2)}`);
   });
-  lines.push(`Total: $${total.toFixed(2)}`);
+  lines.push(`Total: MX$${total.toFixed(2)}`);
   lines.push('');
   lines.push('Podriamos ponernos en contacto para concretar la compra? ¡Gracias!');
 
