@@ -38,6 +38,8 @@ if (itemsContainer) {
 // Configuración / constantes
 const CSV_PATH = 'assets/src/Items.csv';
 const ITEMS_CONTAINER_SELECTOR = '.items-cards';
+// Número de WhatsApp al que se enviará el pedido (sin '+' ni espacios). Dejar vacío '' para no usar número fijo.
+const WHATSAPP_NUMBER = '522711520959';
 
 let products = [];
 let cartItems = [];
@@ -213,7 +215,36 @@ document.addEventListener('change', (e) => {
 document.addEventListener('click', (e) => {
   const checkoutBtn = e.target.closest('#cart-checkout-btn, .cart-checkout-btn');
   if (!checkoutBtn) return;
-  console.log('Finalizar compra:', getCart());
+
+  if (cartItems.length === 0) {
+    alert('Tu carrito está vacío. Agrega productos antes de finalizar la compra.');
+    return;
+  }
+
+  // Construir mensaje con lista de productos, precio y cantidad
+  let lines = [];
+  lines.push('Hola, estoy interesado en los siguientes productos:');
+  let total = 0;
+  cartItems.forEach((ci, idx) => {
+    const product = findProductById(ci.id);
+    const title = product ? product.titulo : `Producto ${ci.id}`;
+    const price = product && typeof product.precio === 'number' ? product.precio : 0;
+    const subtotal = price * ci.qty;
+    total += subtotal;
+    lines.push(`${idx + 1}. ${title} - $${price.toFixed(2)} x${ci.qty} = $${subtotal.toFixed(2)}`);
+  });
+  lines.push(`Total: $${total.toFixed(2)}`);
+  lines.push('');
+  lines.push('Podriamos ponernos en contacto para concretar la compra? ¡Gracias!');
+
+  const message = encodeURIComponent(lines.join('\n'));
+
+  const phone = WHATSAPP_NUMBER ? WHATSAPP_NUMBER.replace(/\D/g, '') : '';
+  const waUrl = phone
+    ? `https://wa.me/${phone}?text=${message}`
+    : `https://api.whatsapp.com/send?text=${message}`;
+
+  window.open(waUrl, '_blank');
 });
 
 /** Exponer API del carrito */
