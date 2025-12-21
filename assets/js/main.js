@@ -367,7 +367,11 @@ function createCardElement({ id, titulo, descripcion, precio, fotourl }) {
 
   const p = document.createElement('p');
   p.className = 'card-text';
-  p.textContent = descripcion;
+  const safeDesc = escapeHtml(descripcion || '')
+    .replace(/\\n/g, '<br>')
+    .replace(/\r?\n/g, '<br>')
+    .replace(/&lt;br\s*\/?&gt;/gi, '<br>');
+  p.innerHTML = safeDesc;
 
   const price = document.createElement('p');
   price.className = 'card-text fw-bold';
