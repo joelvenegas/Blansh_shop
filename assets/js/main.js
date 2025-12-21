@@ -406,7 +406,7 @@ function createCardElement({ id, titulo, descripcion, precio, fotourl }) {
 
   const price = document.createElement('p');
   price.className = 'card-text fw-bold';
-  price.textContent = `$${typeof precio === 'number' ? precio.toFixed(2) : precio}`;
+  price.textContent = `MX$${typeof precio === 'number' ? precio.toFixed(2) : precio}`;
 
   const a = document.createElement('a');
   a.className = 'card-btn btn btn-primary';
