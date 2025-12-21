@@ -249,3 +249,9 @@
 .item-search-form {
   max-width: 40%;
 }
+
+.card img {
+  width: 100%;
+  height: 70%;
+  object-fit: cover;
+}
