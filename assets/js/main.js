@@ -38,11 +38,36 @@ if (itemsContainer) {
 // Configuración / constantes
 const CSV_PATH = 'assets/src/Items.csv';
 const ITEMS_CONTAINER_SELECTOR = '.items-cards';
-// Número de WhatsApp al que se enviará el pedido (sin '+' ni espacios). Dejar vacío '' para no usar número fijo.
-const WHATSAPP_NUMBER = '522711520959';
+// El número de WhatsApp se define una sola vez en assets/js/config.js
+const WHATSAPP_NUMBER = (window.BLANSH_CONFIG && window.BLANSH_CONFIG.WHATSAPP_NUMBER) || '';
+const CART_STORAGE_KEY = 'blansh_cart';
 
 let products = [];
-let cartItems = [];
+let cartItems = loadCartFromStorage();
+
+/** Lee el carrito guardado en localStorage (persiste entre visitas y recargas) */
+function loadCartFromStorage() {
+  try {
+    const raw = localStorage.getItem(CART_STORAGE_KEY);
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter(ci =>
+      ci && (typeof ci.id === 'number' || typeof ci.id === 'string') &&
+      Number.isFinite(ci.qty) && ci.qty >= 1
+    );
+  } catch {
+    return [];
+  }
+}
+
+/** Guarda el carrito en localStorage */
+function saveCart() {
+  try {
+    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartItems));
+  } catch {
+    // localStorage no disponible (modo privado, etc.): el carrito sigue funcionando en memoria
+  }
+}
 
 /** Añade producto al carrito (id: number|string). Si existe incrementa qty, si no lo añade con qty=1 */
 function addToCart(id) {
@@ -51,12 +76,14 @@ function addToCart(id) {
   const existing = cartItems.find(ci => ci.id === normalizedId);
   if (existing) {
     existing.qty += 1;
+    saveCart();
     renderCart();
     refreshAllCardCounts();
     return existing;
   }
   const item = { id: normalizedId, qty: 1 };
   cartItems.push(item);
+  saveCart();
   renderCart();
   refreshAllCardCounts();
   return item;
@@ -74,6 +101,7 @@ function removeFromCart(id) {
   const idx = cartItems.findIndex(ci => ci.id === normalizedId);
   if (idx === -1) return false;
   cartItems.splice(idx, 1);
+  saveCart();
   renderCart();
   refreshAllCardCounts();
   return true;
@@ -141,7 +169,8 @@ function renderCart() {
     qtyInput.dataset.id = ci.id;
 
     const subtotalDiv = document.createElement('div');
-    subtotalDiv.className = 'fw-bold';
+    subtotalDiv.className = 'fw-bold cart-subtotal';
+    subtotalDiv.dataset.id = ci.id;
     subtotalDiv.textContent = `MXN$${subtotal.toFixed(2)}`;
 
     const removeBtn = document.createElement('button');
@@ -159,7 +188,7 @@ function renderCart() {
 
   const totalDiv = document.createElement('div');
   totalDiv.className = 'pt-2 d-flex justify-content-between fw-bold';
-  totalDiv.innerHTML = `<div>Total</div><div>MXN$${total.toFixed(2)}</div>`;
+  totalDiv.innerHTML = `<div>Total</div><div class="cart-total">MXN$${total.toFixed(2)}</div>`;
 
   offbody.appendChild(list);
 
@@ -207,7 +236,23 @@ document.addEventListener('change', (e) => {
   const entry = cartItems.find(ci => ci.id === id);
   if (!entry) return;
   entry.qty = qty;
-  renderCart();
+  input.value = String(qty);
+  saveCart();
+  // Actualizar solo subtotal y total (sin re-renderizar todo el carrito,
+  // para que el input no pierda el foco mientras el usuario escribe)
+  const product = findProductById(id);
+  const price = product && typeof product.precio === 'number' ? product.precio : 0;
+  const subtotalEl = document.querySelector(`#cartList .cart-subtotal[data-id="${id}"]`);
+  if (subtotalEl) subtotalEl.textContent = `MXN$${(price * qty).toFixed(2)}`;
+  const totalEl = document.querySelector('#cartList .cart-total');
+  if (totalEl) {
+    const total = cartItems.reduce((sum, ci) => {
+      const p = findProductById(ci.id);
+      const pr = p && typeof p.precio === 'number' ? p.precio : 0;
+      return sum + pr * ci.qty;
+    }, 0);
+    totalEl.textContent = `MXN$${total.toFixed(2)}`;
+  }
   refreshAllCardCounts();
 });
 
@@ -306,7 +351,8 @@ async function loadAndRenderItems() {
     }
 
     renderItems(container, items);
-    renderCart();  } catch (err) {
+    renderCart();
+  } catch (err) {
     console.error('Error cargando o renderizando items:', err);
     showError(container, 'Error al cargar los productos.');
   }
@@ -319,7 +365,12 @@ async function fetchCSV(path) {
   return await res.text();
 }
 
-/** Parse simple de CSV; devuelve array de objetos: { id, titulo, descripcion, precio, fotourl} */
+/**
+ * Parse simple de CSV; devuelve array de objetos: { id, titulo, descripcion, precio, fotourl}
+ * LIMITACIÓN: el separador es ';' y NO se soportan campos entrecomillados.
+ * Ningún campo del CSV (título, descripción, etc.) puede contener ';',
+ * de lo contrario la fila se leerá con las columnas corridas.
+ */
 function parseCSV(text) {
   return text
     .trim()
@@ -408,7 +459,8 @@ function createCardElement({ id, titulo, descripcion, precio, fotourl }) {
   price.className = 'card-text fw-bold';
   price.textContent = `MXN$${typeof precio === 'number' ? precio.toFixed(2) : precio}`;
 
-  const a = document.createElement('a');
+  const a = document.createElement('button');
+  a.type = 'button';
   a.className = 'card-btn btn btn-primary';
   a.textContent = 'Comprar';
 

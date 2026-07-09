@@ -57,7 +57,7 @@
   gap: 20px;
   padding: 20px 20px 20px 20px;
   background: white;
-  border: 10px transparent rgba(226, 226, 226, 0.4);
+  border: 10px solid rgba(226, 226, 226, 0.4);
 }
 
 .items-cards .card {
