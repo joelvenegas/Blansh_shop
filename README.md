@@ -1,6 +1,6 @@
 # Blansh — Tienda de velas artesanales
 
-Sitio estático de la tienda [blansh.com](https://blansh.com), publicado con GitHub Pages.
+Sitio estático de la tienda [blanshvelas.store](https://www.blanshvelas.store), publicado con GitHub Pages.
 No requiere instalación ni compilación: es HTML, CSS y JavaScript puro (con Bootstrap 5 desde CDN).
 
 ## Estructura del proyecto
