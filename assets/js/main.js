@@ -410,8 +410,18 @@ function renderItems(container, items) {
   refreshAllCardCounts();
 }
 
+/** Actualiza el badge de cantidad total junto al link "Carrito" del navbar */
+function updateCartBadge() {
+  const badge = document.querySelector('.cart-count-badge');
+  if (!badge) return;
+  const totalQty = cartItems.reduce((sum, ci) => sum + ci.qty, 0);
+  badge.hidden = totalQty === 0;
+  badge.textContent = String(totalQty);
+}
+
 /** Actualiza los badges 'x en carrito' de todas las cards */
 function refreshAllCardCounts() {
+  updateCartBadge();
   document.querySelectorAll('.card-cart-count').forEach(span => {
     const idStr = span.dataset.id;
     const idNum = Number(idStr);
@@ -434,11 +444,28 @@ function createCardElement({ id, titulo, descripcion, precio, fotourl }) {
   div.id = `product-${id}`;
   div.className = 'card';
 
+  const imgWrap = document.createElement('div');
+  imgWrap.className = 'card-img-wrap';
+
   const img = document.createElement('img');
   img.className = 'card-img-top';
   img.src = fotourl;
   img.alt = titulo;
   img.loading = 'lazy';
+  imgWrap.appendChild(img);
+
+  // Extraer "Tema: x" de la descripción y mostrarlo como etiqueta sobre la foto
+  let descText = String(descripcion || '');
+  const themeMatch = descText.match(/tema:\s*([^.<\n]+)/i);
+  if (themeMatch) {
+    const themeBadge = document.createElement('span');
+    themeBadge.className = 'card-theme-badge';
+    themeBadge.textContent = themeMatch[1].trim();
+    imgWrap.appendChild(themeBadge);
+    descText = descText
+      .replace(/(\s|<br\s*\/?>|\\n)*tema:\s*[^.<\n]+\.?/i, '')
+      .trim();
+  }
 
   const body = document.createElement('div');
   body.className = 'card-body';
@@ -449,20 +476,20 @@ function createCardElement({ id, titulo, descripcion, precio, fotourl }) {
 
   const p = document.createElement('p');
   p.className = 'card-text';
-  const safeDesc = escapeHtml(descripcion || '')
+  const safeDesc = escapeHtml(descText)
     .replace(/\\n/g, '<br>')
     .replace(/\r?\n/g, '<br>')
     .replace(/&lt;br\s*\/?&gt;/gi, '<br>');
   p.innerHTML = safeDesc;
 
   const price = document.createElement('p');
-  price.className = 'card-text fw-bold';
+  price.className = 'card-text fw-bold card-price';
   price.textContent = `MXN$${typeof precio === 'number' ? precio.toFixed(2) : precio}`;
 
   const a = document.createElement('button');
   a.type = 'button';
-  a.className = 'card-btn btn btn-primary';
-  a.textContent = 'Comprar';
+  a.className = 'card-btn btn btn-primary flex-grow-1';
+  a.innerHTML = '<i class="bi bi-cart-plus"></i> Comprar';
 
   // contador en carrito (a la derecha del botón)
   const countSpan = document.createElement('span');
@@ -482,7 +509,7 @@ function createCardElement({ id, titulo, descripcion, precio, fotourl }) {
   controls.append(a, countSpan);
 
   body.append(h5, p, price, controls);
-  div.append(img, body);
+  div.append(imgWrap, body);
   return div;
 }
 

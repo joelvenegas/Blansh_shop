@@ -1,53 +1,164 @@
 /*
   styles.css - Estilos principales del proyecto
-  Variables globales para colores y tamaños
+  Paleta derivada del logo (flor terracota sobre crema) y del wallpaper de hojas.
 */
 :root {
-  --bg-dark: #0b1220;
-  --text-light: #e9ecef;
-  --accent: #0d6efd;
+  --brand-cream: #FAF6F0;
+  --brand-terracotta: #B3453A;
+  --brand-terracotta-dark: #96382E;
+  --brand-sage: #8FA98F;
+  --brand-sage-dark: #6E8A6E;
+  --brand-brown: #332A25;
+  --text-light: #F4EFE9;
+  --font-display: 'Playfair Display', Georgia, 'Times New Roman', serif;
+}
+
+h1,
+h2,
+.items-title,
+.card-title,
+.navbar-brand strong,
+.carousel-caption h5,
+.offcanvas-title {
+  font-family: var(--font-display);
 }
 
 .body-main {
   padding-top: 60px;
+  background-color: var(--brand-cream);
 }
 
+/* Navbar */
 .header-nav {
   display: flex;
-  padding-top: 10px;
-  padding-bottom: 10px;
-  padding-left: 10px;
-  padding-right: 10px;
+  padding: 10px;
   z-index: 1030;
+  background-color: var(--brand-cream);
+  box-shadow: 0 2px 10px rgba(51, 42, 37, 0.08);
 }
 
+.header-nav .navbar-brand strong {
+  color: var(--brand-brown);
+  font-size: 1.25rem;
+}
+
+.header-nav .nav-link {
+  color: var(--brand-brown);
+}
+
+.header-nav .nav-link:hover,
+.header-nav .nav-link:focus {
+  color: var(--brand-terracotta);
+}
+
+.navbar-brand img {
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+/* Badge de cantidad en el link del carrito */
+.cart-count-badge {
+  display: inline-block;
+  min-width: 1.35em;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background-color: var(--brand-terracotta);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-align: center;
+  vertical-align: text-top;
+}
+
+/* Carrusel */
 .carousel-item img {
   width: 100%;
   height: 500px;
   object-fit: cover;
-  transition: transform 0.7s ease-in-out;
   background-color: black;
 }
 
 .carousel-item {
-  transition: transform .6s ease-in-out;
+  position: relative;
+  transition: transform 0.6s ease-in-out;
   background-color: #000;
   min-height: 500px;
 }
 
-.carousel .carousel-item {
-  transition: transform 0.6s ease-in-out !important;
+/* Degradado oscuro abajo para que el texto se lea sobre cualquier foto */
+.carousel-item::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(25, 18, 14, 0.72), rgba(25, 18, 14, 0) 55%);
+  pointer-events: none;
 }
 
 .carousel-caption {
-  color: black;
-  text-shadow: 0px 0px 10px white;
+  z-index: 1;
+  color: #fff;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.45);
 }
 
+.carousel-caption h5 {
+  font-size: 1.6rem;
+}
+
+@media (max-width: 767px) {
+  .carousel-item img,
+  .carousel-item {
+    height: 380px;
+    min-height: 380px;
+  }
+
+  .carousel-caption {
+    right: 8%;
+    left: 8%;
+    padding-bottom: 2rem;
+  }
+
+  .carousel-caption h5 {
+    font-size: 1.25rem;
+  }
+
+  .carousel-caption p {
+    font-size: 0.85rem;
+    margin-bottom: 0;
+  }
+}
+
+/* Sección de productos */
 .items-container {
-  padding: 0px 5%;
+  padding: 48px 5% 64px;
   background-color: transparent;
   background-image: url('../img/wallpaper.jpg');
+}
+
+.items-panel {
+  max-width: 1200px;
+  margin: 0 auto;
+  background: #fff;
+  border-radius: 18px;
+  padding: 2.5rem 2rem;
+  box-shadow: 0 10px 34px rgba(51, 42, 37, 0.10);
+}
+
+.items-title {
+  text-align: center;
+  color: var(--brand-brown);
+  font-size: 2.1rem;
+  margin: 0 0 0.5rem;
+}
+
+/* Trazo decorativo bajo el título */
+.items-title::after {
+  content: "";
+  display: block;
+  width: 64px;
+  height: 3px;
+  margin: 0.6rem auto 0;
+  border-radius: 2px;
+  background-color: var(--brand-terracotta);
 }
 
 .items-cards {
@@ -55,34 +166,107 @@
   flex-wrap: wrap;
   justify-content: space-around;
   gap: 20px;
-  padding: 20px 20px 20px 20px;
-  background: white;
-  border: 10px solid rgba(226, 226, 226, 0.4);
+  padding-top: 10px;
 }
 
 .items-cards .card {
   width: 100%;
   max-width: 280px;
+  border: none;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(51, 42, 37, 0.10);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .items-cards .card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 10px 26px rgba(51, 42, 37, 0.18);
 }
 
+.card-img-wrap {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 1 / 1;
+}
+
+.card-img-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.35s ease;
+}
+
+.items-cards .card:hover .card-img-wrap img {
+  transform: scale(1.06);
+}
+
+.card-theme-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  padding: 2px 12px;
+  border-radius: 999px;
+  background-color: var(--brand-sage);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: capitalize;
+  box-shadow: 0 2px 6px rgba(51, 42, 37, 0.25);
+}
+
+.card-price {
+  color: var(--brand-terracotta);
+  font-size: 1.1rem;
+}
+
+/* Botones de acción en color de marca (sobrescribe btn-primary / btn-success) */
+.card-btn,
+.cart-checkout-btn {
+  --bs-btn-bg: var(--brand-terracotta);
+  --bs-btn-border-color: var(--brand-terracotta);
+  --bs-btn-hover-bg: var(--brand-terracotta-dark);
+  --bs-btn-hover-border-color: var(--brand-terracotta-dark);
+  --bs-btn-active-bg: var(--brand-terracotta-dark);
+  --bs-btn-active-border-color: var(--brand-terracotta-dark);
+  --bs-btn-disabled-bg: var(--brand-terracotta);
+  --bs-btn-disabled-border-color: var(--brand-terracotta);
+}
+
+/* Búsqueda de productos */
+.item-search {
+  margin: 1.5rem auto;
+  max-width: 420px;
+}
+
+.item-search .input-group-text {
+  background-color: var(--brand-cream);
+  color: var(--brand-brown);
+  border-right: 0;
+}
+
+.item-search .item-search-input {
+  border-left: 0;
+}
+
+.item-search .item-search-input:focus {
+  border-color: var(--brand-sage);
+  box-shadow: 0 0 0 0.2rem rgba(143, 169, 143, 0.25);
+}
+
+/* Footer */
 .footer-dark {
-  background-color: #0b1220;
-  color: #e9ecef;
+  background-color: var(--brand-brown);
+  color: var(--text-light);
 }
 
 .footer-dark a {
-  color: #e9ecef;
+  color: var(--text-light);
   text-decoration: none;
 }
 
 .footer-dark a:hover {
-  color: #adb5bd;
+  color: var(--brand-sage);
   text-decoration: none;
 }
 
@@ -95,18 +279,19 @@
   margin-left: 6px;
   margin-right: 6px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(255, 255, 255, 0.05);
   transition: background 0.15s ease, transform 0.12s ease;
   font-size: 1.15rem;
 }
 
 .footer-dark .social-links a:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.12);
   transform: translateY(-2px);
 }
 
 .footer-dark h5 {
   margin-bottom: 0.25rem;
+  font-family: var(--font-display);
 }
 
 .footer-dark p.small {
@@ -116,39 +301,44 @@
 
 /* Contact style */
 .header-nav-contact {
-  padding-top: 10px;
-  padding-bottom: 10px;
-  padding-left: 10px;
-  padding-right: 10px;
+  padding: 10px;
 }
+
 .underlined {
   text-decoration: underline !important;
   text-underline-offset: 2px;
-  color: black;
+  color: var(--brand-brown);
   font-size: large;
+}
+
+.underlined:hover {
+  color: var(--brand-terracotta);
 }
 
 /* Contact page */
 .contact-row {
   gap: 1rem;
 }
+
 .contact-logo {
   width: 160px;
   height: 160px;
   max-width: 180px;
   object-fit: cover;
   border-radius: 50%;
-  border: 4px solid rgba(255,255,255,0.12);
-  box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+  border: 4px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
   display: block;
   margin: 0 auto;
 }
+
 @media (max-width: 767px) {
   .contact-logo {
     width: 120px;
     height: 120px;
   }
 }
+
 .contact-text {
   padding-top: 0.5rem;
 }
@@ -158,11 +348,17 @@
   margin-bottom: 0.5rem;
   font-size: 1.25rem;
 }
-.contact-buttons .buttons { display: flex; gap: .5rem; flex-wrap: wrap; }
+
+.contact-buttons .buttons {
+  display: flex;
+  gap: .5rem;
+  flex-wrap: wrap;
+}
+
 .contact-buttons .btn {
   background: transparent !important;
-  color: #000 !important;
-  border: 2px solid #000 !important;
+  color: var(--brand-brown) !important;
+  border: 2px solid var(--brand-brown) !important;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -172,19 +368,22 @@
   border-radius: 50%;
   font-size: 1.05rem;
 }
+
 .contact-buttons .btn:hover {
-  background: transparent !important;
+  color: var(--brand-terracotta) !important;
+  border-color: var(--brand-terracotta) !important;
   transform: translateY(-2px);
-  box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
 }
 
-.navbar-brand img {
-  border-radius: 50%;
-  object-fit: cover;
-}
 @media (min-width: 768px) {
-  .contact-logo { margin: 0; }
-  .contact-text { padding-left: 1.5rem; }
+  .contact-logo {
+    margin: 0;
+  }
+
+  .contact-text {
+    padding-left: 1.5rem;
+  }
 }
 
 /* Contact page background */
@@ -193,7 +392,7 @@
   min-height: 100vh;
   background-attachment: fixed;
   position: relative;
-  color: black;
+  color: var(--brand-brown);
 }
 
 .contact-page::before {
@@ -209,7 +408,8 @@
   z-index: 1;
 }
 
-.offcanvas-cart{
+/* Carrito (offcanvas) */
+.offcanvas-cart {
   --bs-offcanvas-width: 450px;
 }
 
@@ -235,23 +435,16 @@
   bottom: 0;
   background: #fff;
   padding: .75rem;
-  box-shadow: 0 -6px 12px rgba(0,0,0,0.08);
+  box-shadow: 0 -6px 12px rgba(0, 0, 0, 0.08);
   z-index: 10;
 }
 
-/* Búsqueda de productos */
-.item-search {
-  padding: 30px 20px 20px 30px;
-  background: white;
-  
-}
+@media (max-width: 575px) {
+  .items-panel {
+    padding: 1.75rem 1rem;
+  }
 
-.item-search-form {
-  max-width: 40%;
-}
-
-.card img {
-  width: 100%;
-  height: 70%;
-  object-fit: cover;
+  .item-search {
+    max-width: 100%;
+  }
 }
