@@ -38,6 +38,9 @@ if (itemsContainer) {
 // Configuración / constantes
 const SITE_URL = 'https://www.blanshvelas.store/';
 const CSV_PATH = 'assets/src/Items.csv';
+// Catálogo editable en Google Sheets (Archivo → Compartir → Publicar en la web → CSV).
+// Si Sheets no responde, se usa CSV_PATH (copia local en el repo) como respaldo.
+const REMOTE_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT2ulZhDDH2ANOLvIuMG4ZEI4WctbutoSx-nxDp5OKCo6QqlpnPTKhFzxfbnG_ce0XtqWjuZeTl9LIe/pub?gid=1159407197&single=true&output=csv';
 const ITEMS_CONTAINER_SELECTOR = '.items-cards';
 // El número de WhatsApp se define una sola vez en assets/js/config.js
 const WHATSAPP_NUMBER = (window.BLANSH_CONFIG && window.BLANSH_CONFIG.WHATSAPP_NUMBER) || '';
@@ -385,7 +388,7 @@ async function loadAndRenderItems() {
   showLoading(container);
 
   try {
-    const text = await fetchCSV(CSV_PATH);
+    const text = await fetchCatalog();
     const items = parseCSV(text);
 
     products = items;
@@ -405,6 +408,16 @@ async function loadAndRenderItems() {
   }
 }
 
+/** Intenta cargar el catálogo desde Google Sheets; si falla, usa el CSV local del repo */
+async function fetchCatalog() {
+  try {
+    return await fetchCSV(REMOTE_CSV_URL);
+  } catch (err) {
+    console.warn('No se pudo cargar el catálogo desde Google Sheets, se usa el CSV local:', err);
+    return await fetchCSV(CSV_PATH);
+  }
+}
+
 /** Fetch del CSV y devolución del texto */
 async function fetchCSV(path) {
   const res = await fetch(path);
@@ -413,24 +426,25 @@ async function fetchCSV(path) {
 }
 
 /**
- * Parse simple de CSV; devuelve array de objetos: { id, titulo, descripcion, tema, precio, fotourl}
+ * Parse de CSV; devuelve array de objetos: { id, titulo, descripcion, tema, precio, fotourl}
  * El "Tema: x." dentro de la descripción se extrae al campo `tema` (en minúsculas)
  * y se quita del texto de la descripción.
- * LIMITACIÓN: el separador es ';' y NO se soportan campos entrecomillados.
- * Ningún campo del CSV (título, descripción, etc.) puede contener ';',
- * de lo contrario la fila se leerá con las columnas corridas.
+ * Soporta separador ',' (Google Sheets) o ';' (CSV local) — se detecta por archivo —
+ * y campos entrecomillados con comillas dobles, incluyendo saltos de línea internos.
+ * Si la primera fila no tiene id ni precio numéricos se asume encabezado y se ignora.
  */
 function parseCSV(text) {
-  return text
-    .trim()
-    .split('\n')
-    .map((line, index) => {
-      const cols = line.split(';').map(c => c.trim());
+  return tokenizeCSV(text)
+    .map((cols, index) => {
+      cols = cols.map(c => c.trim());
       if (cols.length < 4) {
-        console.warn(`Línea ${index + 1} con columnas insuficientes, se ignora`);
+        if (cols.join('').length > 0) console.warn(`Línea ${index + 1} con columnas insuficientes, se ignora`);
         return null;
       }
       let [id, titulo, descripcion, precio, fotourl] = cols;
+      if (index === 0 && !Number.isFinite(Number(id)) && !Number.isFinite(parseFloat(String(precio).replace(',', '.')))) {
+        return null; // fila de encabezado
+      }
       const precioNum = parseFloat(String(precio).replace(',', '.'));
       if (!Number.isFinite(precioNum)) {
         console.warn(`Precio inválido en línea ${index + 1}: "${precio}"`);
@@ -451,6 +465,51 @@ function parseCSV(text) {
       return { id, titulo, descripcion: descText, tema, precio: Number.isFinite(precioNum) ? precioNum : precio, fotourl };
     })
     .filter(Boolean);
+}
+
+/**
+ * Separa el texto CSV en filas y columnas respetando campos entre comillas dobles
+ * (Google Sheets entrecomilla los campos que contienen el separador, comillas o saltos de línea).
+ * El separador (',' o ';') se detecta según cuál aparece más en la primera línea.
+ */
+function tokenizeCSV(text) {
+  const firstLineEnd = text.indexOf('\n');
+  const firstLine = firstLineEnd === -1 ? text : text.slice(0, firstLineEnd);
+  const delim = (firstLine.split(';').length > firstLine.split(',').length) ? ';' : ',';
+
+  const rows = [];
+  let row = [];
+  let field = '';
+  let inQuotes = false;
+
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (inQuotes) {
+      if (ch === '"') {
+        if (text[i + 1] === '"') { field += '"'; i++; } // comilla escapada ""
+        else inQuotes = false;
+      } else {
+        field += ch;
+      }
+    } else if (ch === '"' && field === '') {
+      inQuotes = true;
+    } else if (ch === delim) {
+      row.push(field);
+      field = '';
+    } else if (ch === '\n' || ch === '\r') {
+      if (ch === '\r' && text[i + 1] === '\n') i++;
+      row.push(field);
+      field = '';
+      if (row.some(c => c.trim() !== '')) rows.push(row);
+      row = [];
+    } else {
+      field += ch;
+    }
+  }
+  row.push(field);
+  if (row.some(c => c.trim() !== '')) rows.push(row);
+
+  return rows;
 }
 
 /** Inserta datos estructurados (schema.org) para que buscadores muestren los productos con precio */
