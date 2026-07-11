@@ -36,6 +36,7 @@ if (itemsContainer) {
 }
 
 // Configuración / constantes
+const SITE_URL = 'https://www.blanshvelas.store/';
 const CSV_PATH = 'assets/src/Items.csv';
 const ITEMS_CONTAINER_SELECTOR = '.items-cards';
 // El número de WhatsApp se define una sola vez en assets/js/config.js
@@ -43,6 +44,7 @@ const WHATSAPP_NUMBER = (window.BLANSH_CONFIG && window.BLANSH_CONFIG.WHATSAPP_N
 const CART_STORAGE_KEY = 'blansh_cart';
 
 let products = [];
+let activeTheme = ''; // '' = todas; se setea desde los botones de filtro por tema
 let cartItems = loadCartFromStorage();
 
 /** Lee el carrito guardado en localStorage (persiste entre visitas y recargas) */
@@ -197,18 +199,60 @@ function renderCart() {
   footer.className = 'cart-footer';
   footer.appendChild(totalDiv);
 
-  // Botón para finalizar compra
+  // Botones: finalizar compra + vaciar carrito
   const checkoutWrap = document.createElement('div');
-  checkoutWrap.className = 'pt-3';
+  checkoutWrap.className = 'pt-3 d-flex flex-column gap-2';
   const checkoutBtn = document.createElement('button');
   checkoutBtn.className = 'btn btn-success w-100 cart-checkout-btn';
   checkoutBtn.type = 'button';
   checkoutBtn.id = 'cart-checkout-btn';
   checkoutBtn.textContent = 'Finalizar compra';
-  checkoutWrap.appendChild(checkoutBtn);
+  const clearBtn = document.createElement('button');
+  clearBtn.className = 'btn btn-sm btn-outline-danger w-100 cart-clear-btn';
+  clearBtn.type = 'button';
+  clearBtn.innerHTML = '<i class="bi bi-trash"></i> Vaciar carrito';
+  checkoutWrap.append(checkoutBtn, clearBtn);
 
   footer.appendChild(checkoutWrap);
   offbody.appendChild(footer);
+}
+
+/** Vacía el carrito por completo */
+function clearCart() {
+  cartItems = [];
+  saveCart();
+  renderCart();
+  refreshAllCardCounts();
+}
+
+// Delegación para el botón de vaciar carrito
+document.addEventListener('click', (e) => {
+  const btn = e.target.closest('.cart-clear-btn');
+  if (!btn) return;
+  if (window.confirm('¿Vaciar el carrito?')) {
+    clearCart();
+    showToast('Se vació el carrito.');
+  }
+});
+
+/** Muestra un aviso breve (toast de Bootstrap) en la esquina inferior */
+function showToast(message) {
+  let wrap = document.querySelector('.toast-container');
+  if (!wrap) {
+    wrap = document.createElement('div');
+    wrap.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+    document.body.appendChild(wrap);
+  }
+  const toast = document.createElement('div');
+  toast.className = 'toast align-items-center border-0 site-toast';
+  toast.setAttribute('role', 'status');
+  toast.setAttribute('aria-live', 'polite');
+  toast.innerHTML = '<div class="d-flex"><div class="toast-body"></div>' +
+    '<button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Cerrar"></button></div>';
+  toast.querySelector('.toast-body').textContent = message;
+  wrap.appendChild(toast);
+  toast.addEventListener('hidden.bs.toast', () => toast.remove());
+  new bootstrap.Toast(toast, { delay: 2500 }).show();
 } 
 
 // Delegación de eventos para botones de eliminar dentro del offcanvas
@@ -262,7 +306,7 @@ document.addEventListener('click', (e) => {
   if (!checkoutBtn) return;
 
   if (cartItems.length === 0) {
-    alert('Tu carrito está vacío. Agrega productos antes de finalizar la compra.');
+    showToast('Tu carrito está vacío. Agrega productos antes de finalizar la compra.');
     return;
   }
 
@@ -297,6 +341,7 @@ window.CartStore = {
   add: addToCart,
   get: getCart,
   remove: removeFromCart,
+  clear: clearCart,
   _internal: () => cartItems,
   render: renderCart
 };
@@ -326,7 +371,7 @@ function initCarousel() {
   if (!elem) return;
 
   new bootstrap.Carousel(elem, {
-    interval: 3000,
+    interval: 5000,
     touch: true,
     pause: 'hover'
   });
@@ -350,8 +395,10 @@ async function loadAndRenderItems() {
       return;
     }
 
+    renderFilters();
     renderItems(container, items);
     renderCart();
+    injectProductJsonLd(items);
   } catch (err) {
     console.error('Error cargando o renderizando items:', err);
     showError(container, 'Error al cargar los productos.');
@@ -366,7 +413,9 @@ async function fetchCSV(path) {
 }
 
 /**
- * Parse simple de CSV; devuelve array de objetos: { id, titulo, descripcion, precio, fotourl}
+ * Parse simple de CSV; devuelve array de objetos: { id, titulo, descripcion, tema, precio, fotourl}
+ * El "Tema: x." dentro de la descripción se extrae al campo `tema` (en minúsculas)
+ * y se quita del texto de la descripción.
  * LIMITACIÓN: el separador es ';' y NO se soportan campos entrecomillados.
  * Ningún campo del CSV (título, descripción, etc.) puede contener ';',
  * de lo contrario la fila se leerá con las columnas corridas.
@@ -388,9 +437,48 @@ function parseCSV(text) {
       }
       const idNum = Number(id);
       id = Number.isFinite(idNum) ? idNum : id;
-      return { id, titulo, descripcion, precio: Number.isFinite(precioNum) ? precioNum : precio, fotourl };
+
+      let tema = '';
+      let descText = String(descripcion || '');
+      const themeMatch = descText.match(/tema:\s*([^.<\n]+)/i);
+      if (themeMatch) {
+        tema = themeMatch[1].trim().toLowerCase();
+        descText = descText
+          .replace(/(\s|<br\s*\/?>|\\n)*tema:\s*[^.<\n]+\.?/i, '')
+          .trim();
+      }
+
+      return { id, titulo, descripcion: descText, tema, precio: Number.isFinite(precioNum) ? precioNum : precio, fotourl };
     })
     .filter(Boolean);
+}
+
+/** Inserta datos estructurados (schema.org) para que buscadores muestren los productos con precio */
+function injectProductJsonLd(items) {
+  const data = {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    itemListElement: items.map((p, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      item: {
+        '@type': 'Product',
+        name: p.titulo,
+        image: SITE_URL + p.fotourl,
+        description: String(p.descripcion || '').replace(/<br\s*\/?>/gi, ' ').replace(/\\n/g, ' ').trim(),
+        offers: {
+          '@type': 'Offer',
+          price: typeof p.precio === 'number' ? p.precio.toFixed(2) : String(p.precio),
+          priceCurrency: 'MXN',
+          availability: 'https://schema.org/InStock'
+        }
+      }
+    }))
+  };
+  const script = document.createElement('script');
+  script.type = 'application/ld+json';
+  script.textContent = JSON.stringify(data);
+  document.head.appendChild(script);
 }
 
 /** Renderiza las tarjetas usando DocumentFragment */
@@ -438,7 +526,7 @@ function refreshAllCardCounts() {
 }
 
 /** Crea el elemento de la tarjeta */
-function createCardElement({ id, titulo, descripcion, precio, fotourl }) {
+function createCardElement({ id, titulo, descripcion, tema, precio, fotourl }) {
   const div = document.createElement('div');
   div.dataset.id = id;
   div.id = `product-${id}`;
@@ -454,18 +542,14 @@ function createCardElement({ id, titulo, descripcion, precio, fotourl }) {
   img.loading = 'lazy';
   imgWrap.appendChild(img);
 
-  // Extraer "Tema: x" de la descripción y mostrarlo como etiqueta sobre la foto
-  let descText = String(descripcion || '');
-  const themeMatch = descText.match(/tema:\s*([^.<\n]+)/i);
-  if (themeMatch) {
+  // Etiqueta con el tema sobre la foto (el tema ya viene extraído del CSV)
+  if (tema) {
     const themeBadge = document.createElement('span');
     themeBadge.className = 'card-theme-badge';
-    themeBadge.textContent = themeMatch[1].trim();
+    themeBadge.textContent = tema;
     imgWrap.appendChild(themeBadge);
-    descText = descText
-      .replace(/(\s|<br\s*\/?>|\\n)*tema:\s*[^.<\n]+\.?/i, '')
-      .trim();
   }
+  const descText = String(descripcion || '');
 
   const body = document.createElement('div');
   body.className = 'card-body';
@@ -537,34 +621,70 @@ function debounce(fn, wait = 200) {
   };
 }
 
-/** Ejecuta búsqueda y renderiza resultados */
+/** Ejecuta búsqueda (texto + tema activo) y renderiza resultados */
 function performSearch(query) {
   const q = String(query || '').trim().toLowerCase();
   const container = document.querySelector(ITEMS_CONTAINER_SELECTOR);
   if (!container) return;
 
-  if (!q) {
-    renderItems(container, products);
-    return;
+  let filtered = products;
+  if (activeTheme) {
+    filtered = filtered.filter(p => p.tema === activeTheme);
+  }
+  if (q) {
+    filtered = filtered.filter(p => {
+      return (
+        String(p.titulo).toLowerCase().includes(q) ||
+        String(p.descripcion).toLowerCase().includes(q) ||
+        String(p.tema).toLowerCase().includes(q)
+      );
+    });
   }
 
-  const filtered = products.filter(p => {
-    return (
-      String(p.titulo).toLowerCase().includes(q) ||
-      String(p.descripcion).toLowerCase().includes(q)
-    );
-  });
-
-
-
   if (filtered.length === 0) {
-    container.innerHTML = `<p class="text-center">No se encontraron productos para "${escapeHtml(q)}".</p>`;
+    container.innerHTML = `<p class="text-center">No se encontraron productos${q ? ` para "${escapeHtml(q)}"` : ''}.</p>`;
     refreshAllCardCounts();
     return;
   }
 
   renderItems(container, filtered);
 }
+
+/** Renderiza los botones de filtro por tema a partir de los temas presentes en el catálogo */
+function renderFilters() {
+  const wrap = document.querySelector('.item-filters');
+  if (!wrap) return;
+
+  const themes = [...new Set(products.map(p => p.tema).filter(Boolean))];
+  wrap.innerHTML = '';
+  if (themes.length === 0) return;
+
+  const makeBtn = (label, value) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'filter-btn' + (value === activeTheme ? ' active' : '');
+    btn.setAttribute('aria-pressed', String(value === activeTheme));
+    btn.dataset.theme = value;
+    btn.textContent = label;
+    return btn;
+  };
+
+  wrap.appendChild(makeBtn('Todas', ''));
+  themes.forEach(t => wrap.appendChild(makeBtn(t, t)));
+}
+
+// Delegación para los botones de filtro por tema
+document.addEventListener('click', (e) => {
+  const btn = e.target.closest('.item-filters .filter-btn');
+  if (!btn) return;
+  activeTheme = btn.dataset.theme || '';
+  document.querySelectorAll('.item-filters .filter-btn').forEach(b => {
+    b.classList.toggle('active', b === btn);
+    b.setAttribute('aria-pressed', String(b === btn));
+  });
+  const input = document.querySelector('.item-search-input');
+  performSearch(input ? input.value : '');
+});
 
 function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));

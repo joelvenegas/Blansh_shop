@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="es">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#FAF6F0">
+  <link rel="icon" href="/assets/img/favicon.png" type="image/png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&display=swap"
+    rel="stylesheet">
+  <title>Página no encontrada - Blansh</title>
+  <style>
+    /* Página autónoma: usa rutas absolutas e inline styles porque GitHub Pages
+       la sirve desde cualquier URL rota, donde las rutas relativas fallarían. */
+    :root {
+      --brand-cream: #FAF6F0;
+      --brand-terracotta: #B3453A;
+      --brand-terracotta-dark: #96382E;
+      --brand-brown: #332A25;
+    }
+
+    * {
+      margin: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: var(--brand-cream);
+      color: var(--brand-brown);
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      text-align: center;
+      padding: 2rem;
+    }
+
+    .box img {
+      width: 96px;
+      height: 96px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin-bottom: 1.25rem;
+    }
+
+    h1 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 1.9rem;
+      margin-bottom: 0.75rem;
+    }
+
+    p {
+      margin-bottom: 1.5rem;
+      opacity: 0.85;
+    }
+
+    a.btn-home {
+      display: inline-block;
+      padding: 10px 28px;
+      border-radius: 999px;
+      background-color: var(--brand-terracotta);
+      color: #fff;
+      text-decoration: none;
+      font-weight: 600;
+      transition: background 0.15s ease;
+    }
+
+    a.btn-home:hover {
+      background-color: var(--brand-terracotta-dark);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="box">
+    <img src="/assets/img/Blansh_Logo_small.jpg" alt="Blansh logo">
+    <h1>Página no encontrada</h1>
+    <p>La página que buscás no existe o fue movida.</p>
+    <a class="btn-home" href="/">Volver al inicio</a>
+  </div>
+</body>
+
+</html>
