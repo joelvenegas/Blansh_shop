@@ -588,7 +588,7 @@ function injectProductJsonLd(items) {
       item: {
         '@type': 'Product',
         name: p.titulo,
-        image: SITE_URL + p.fotourl,
+        image: /^https?:\/\//i.test(p.fotourl) ? p.fotourl : SITE_URL + p.fotourl,
         description: String(p.descripcion || '').replace(/<br\s*\/?>/gi, ' ').replace(/\\n/g, ' ').trim(),
         offers: {
           '@type': 'Offer',
