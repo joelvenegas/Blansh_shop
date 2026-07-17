@@ -204,7 +204,7 @@ function renderCart() {
 
   // Botones: finalizar compra + vaciar carrito
   const checkoutWrap = document.createElement('div');
-  checkoutWrap.className = 'pt-3 d-flex flex-column gap-2';
+  checkoutWrap.className = 'cart-actions pt-3 d-flex flex-column gap-2';
   const checkoutBtn = document.createElement('button');
   checkoutBtn.className = 'btn btn-success w-100 cart-checkout-btn';
   checkoutBtn.type = 'button';
@@ -228,13 +228,67 @@ function clearCart() {
   refreshAllCardCounts();
 }
 
-// Delegación para el botón de vaciar carrito
+/** Muestra la confirmación inline para vaciar el carrito dentro del cart-footer */
+function showClearConfirm() {
+  const footer = document.querySelector('#cartList .cart-footer');
+  if (!footer || footer.querySelector('.cart-confirm')) return;
+
+  footer.querySelector('.cart-actions')?.classList.add('d-none');
+
+  const confirmBox = document.createElement('div');
+  confirmBox.className = 'cart-confirm';
+
+  const msg = document.createElement('div');
+  msg.className = 'cart-confirm-msg';
+  msg.textContent = '¿Vaciar el carrito?';
+
+  const btnWrap = document.createElement('div');
+  btnWrap.className = 'cart-confirm-buttons d-flex gap-2';
+
+  const yesBtn = document.createElement('button');
+  yesBtn.className = 'btn btn-sm btn-danger w-100 cart-confirm-yes';
+  yesBtn.type = 'button';
+  yesBtn.innerHTML = '<i class="bi bi-trash"></i> Sí, vaciar';
+
+  const noBtn = document.createElement('button');
+  noBtn.className = 'btn btn-sm btn-outline-secondary w-100 cart-confirm-no';
+  noBtn.type = 'button';
+  noBtn.textContent = 'Cancelar';
+
+  btnWrap.append(yesBtn, noBtn);
+  confirmBox.append(msg, btnWrap);
+  footer.appendChild(confirmBox);
+}
+
+/** Cierra la confirmación inline y restaura los botones del carrito */
+function hideClearConfirm() {
+  const footer = document.querySelector('#cartList .cart-footer');
+  if (!footer) return;
+  footer.querySelector('.cart-confirm')?.remove();
+  footer.querySelector('.cart-actions')?.classList.remove('d-none');
+}
+
+// Delegación para el botón de vaciar carrito y su confirmación inline
 document.addEventListener('click', (e) => {
-  const btn = e.target.closest('.cart-clear-btn');
-  if (!btn) return;
-  if (window.confirm('¿Vaciar el carrito?')) {
+  if (e.target.closest('.cart-clear-btn')) {
+    showClearConfirm();
+    return;
+  }
+  if (e.target.closest('.cart-confirm-yes')) {
     clearCart();
     showToast('Se vació el carrito.');
+    return;
+  }
+  if (e.target.closest('.cart-confirm-no')) {
+    hideClearConfirm();
+  }
+});
+
+// Al cerrar el offcanvas del carrito sin confirmar, restaurar la vista por defecto
+// (si no se hace esto, la confirmación de "vaciar carrito" quedaría abierta al reabrir el carrito)
+document.addEventListener('hidden.bs.offcanvas', (e) => {
+  if (e.target && e.target.id === 'cartList') {
+    hideClearConfirm();
   }
 });
 
