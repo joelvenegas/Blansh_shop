@@ -481,8 +481,11 @@ async function fetchCSV(path) {
 
 /**
  * Parse de CSV; devuelve array de objetos: { id, titulo, descripcion, tema, precio, fotourl}
- * El "Tema: x." dentro de la descripción se extrae al campo `tema` (en minúsculas)
- * y se quita del texto de la descripción.
+ * Formato nuevo (6 columnas): id;titulo;descripcion;tema;precio;fotourl
+ * Formato legado (5 columnas): id;titulo;descripcion;precio;fotourl — el "Tema: x."
+ * dentro de la descripción se extrae al campo `tema` y se quita del texto.
+ * Ambos formatos se aceptan (se detecta por cantidad de columnas de cada fila),
+ * así el Sheets remoto y el CSV local pueden migrarse en momentos distintos.
  * Soporta separador ',' (Google Sheets) o ';' (CSV local) — se detecta por archivo —
  * y campos entrecomillados con comillas dobles, incluyendo saltos de línea internos.
  * Si la primera fila no tiene id ni precio numéricos se asume encabezado y se ignora.
@@ -495,7 +498,13 @@ function parseCSV(text) {
         if (cols.join('').length > 0) console.warn(`Línea ${index + 1} con columnas insuficientes, se ignora`);
         return null;
       }
-      let [id, titulo, descripcion, precio, fotourl] = cols;
+      let id, titulo, descripcion, tema, precio, fotourl;
+      if (cols.length >= 6) {
+        [id, titulo, descripcion, tema, precio, fotourl] = cols;
+      } else {
+        [id, titulo, descripcion, precio, fotourl] = cols;
+        tema = '';
+      }
       if (index === 0 && !Number.isFinite(Number(id)) && !Number.isFinite(parseFloat(String(precio).replace(',', '.')))) {
         return null; // fila de encabezado
       }
@@ -506,11 +515,13 @@ function parseCSV(text) {
       const idNum = Number(id);
       id = Number.isFinite(idNum) ? idNum : id;
 
-      let tema = '';
+      tema = String(tema || '').trim().toLowerCase();
       let descText = String(descripcion || '');
+      // Compatibilidad con el formato legado: extraer "Tema: x." de la descripción
+      // si no vino en su propia columna, y limpiarlo del texto en cualquier caso.
       const themeMatch = descText.match(/tema:\s*([^.<\n]+)/i);
       if (themeMatch) {
-        tema = themeMatch[1].trim().toLowerCase();
+        if (!tema) tema = themeMatch[1].trim().toLowerCase();
         descText = descText
           .replace(/(\s|<br\s*\/?>|\\n)*tema:\s*[^.<\n]+\.?/i, '')
           .trim();
